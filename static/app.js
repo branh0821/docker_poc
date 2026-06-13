@@ -577,7 +577,19 @@ document.addEventListener('DOMContentLoaded', () => {
         lightboxImg.style.display = 'none';
         
         if (file.is_image) {
-            lightboxImg.src = `/api/raw/${encodeURIComponent(file.path)}`;
+            const totalPixels = (file.width || 0) * (file.height || 0);
+            const rawUrl = `/api/raw/${encodeURIComponent(file.path)}`;
+            const thumbUrl = `/api/thumbnail/${encodeURIComponent(file.path)}?width=1280&height=800`;
+            
+            // Render low-res preview thumbnail first for instant loading, or raw immediately for small files
+            if (totalPixels > 0 && totalPixels < 1200000) {
+                lightboxImg.src = rawUrl;
+                lightboxImg.dataset.loadedFidelity = 'raw';
+            } else {
+                lightboxImg.src = thumbUrl;
+                lightboxImg.dataset.loadedFidelity = 'thumbnail';
+            }
+            
             lightboxImg.style.display = 'block';
             lightboxZoomIn.style.display = 'inline-flex';
             lightboxZoomOut.style.display = 'inline-flex';
@@ -629,6 +641,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetZoom() {
         lightboxImg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    }
+
+    function upgradeImageFidelity() {
+        if (!lightbox.classList.contains('open')) return;
+        const file = lightboxActiveImages[lightboxIndex];
+        if (file && file.is_image && lightboxImg.dataset.loadedFidelity === 'thumbnail') {
+            lightboxImg.src = `/api/raw/${encodeURIComponent(file.path)}`;
+            lightboxImg.dataset.loadedFidelity = 'raw';
+        }
     }
 
     // --- Event Listeners ---
@@ -715,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lightboxImg.style.transition = 'transform 0.2s ease';
             zoomLevel += 0.5;
             resetZoom();
+            if (zoomLevel > 1) upgradeImageFidelity();
         }
     });
 
@@ -812,6 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 zoomLevel = 2.5;
                 panX = 0;
                 panY = 0;
+                upgradeImageFidelity();
             }
             resetZoom();
             lastTap = 0;
@@ -839,9 +862,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('touchmove', (e) => {
         if (!lightbox.classList.contains('open')) return;
 
-        if (e.touches.length === 1 && isDragging) {
+        if (e.touches.length === 1) {
+            // Prevent browser scroll and history swipe navigation at the page level
             if (e.cancelable) e.preventDefault();
-            handleMove(e.touches[0].clientX, e.touches[0].clientY);
+            
+            if (isDragging) {
+                handleMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
         } else if (e.touches.length === 2 && initialDistance > 0) {
             if (e.cancelable) e.preventDefault();
             const dist = getDistance(e.touches[0], e.touches[1]);
@@ -850,6 +877,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (zoomLevel <= 1) {
                 panX = 0;
                 panY = 0;
+            } else {
+                upgradeImageFidelity();
             }
             resetZoom();
         }
@@ -858,6 +887,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('touchend', (e) => {
         if (!lightbox.classList.contains('open')) return;
         handleEnd();
+        
+        // Restore transition style after pinch gesture completes
+        if (initialDistance > 0) {
+            lightboxImg.style.transition = 'transform 0.2s ease';
+        }
         initialDistance = 0;
 
         // Horizontal and vertical swipes when zoom is 1
@@ -925,6 +959,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (zoomLevel <= 1) {
                 panX = 0;
                 panY = 0;
+            } else {
+                upgradeImageFidelity();
             }
             resetZoom();
         }
@@ -955,7 +991,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'ArrowLeft') navigateLightbox('prev');
             if (e.key === '+' || e.key === '=') {
                 lightboxImg.style.transition = 'transform 0.2s ease';
-                if (zoomLevel < 4) { zoomLevel += 0.5; resetZoom(); }
+                if (zoomLevel < 4) { 
+                    zoomLevel += 0.5; 
+                    resetZoom(); 
+                    if (zoomLevel > 1) upgradeImageFidelity();
+                }
             }
             if (e.key === '-') {
                 lightboxImg.style.transition = 'transform 0.2s ease';
