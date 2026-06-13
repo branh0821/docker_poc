@@ -553,6 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
         panY = 0;
         renderLightboxImage();
         lightbox.classList.add('open');
+        document.body.classList.add('lightbox-open');
     }
 
     function renderLightboxImage() {
@@ -614,6 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeLightbox() {
         lightbox.classList.remove('open');
+        document.body.classList.remove('lightbox-open');
         lightboxImg.src = '';
         lightboxVideo.pause();
         lightboxVideo.src = '';
