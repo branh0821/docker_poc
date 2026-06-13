@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const listViewBtn = document.getElementById('list-view-btn');
     const listHeaders = document.getElementById('list-headers');
     const filesTitle = document.getElementById('files-title');
+    const foldersTitle = document.getElementById('folders-title');
     
     // Details Panel
     const detailSidebar = document.getElementById('detail-sidebar');
@@ -232,12 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
             filesTitle.textContent = 'Starred Files';
             foldersSection.style.display = 'none';
         } else if (activeTab === 'recent') {
-            displayFolders = [];
-            // Sort by modified time descending for recent
+            // Sort folders and files by modified time descending for recent
+            displayFolders.sort((a, b) => b.timestamp - a.timestamp);
             displayFiles.sort((a, b) => b.timestamp - a.timestamp);
+            foldersTitle.textContent = 'Recent Folders';
             filesTitle.textContent = 'Recent Files';
-            foldersSection.style.display = 'none';
+            foldersSection.style.display = displayFolders.length > 0 ? 'block' : 'none';
         } else {
+            foldersTitle.textContent = 'Folders';
             filesTitle.textContent = 'Files';
             foldersSection.style.display = displayFolders.length > 0 ? 'block' : 'none';
         }
