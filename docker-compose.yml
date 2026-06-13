@@ -1,0 +1,31 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale-poc
+    hostname: hello-poc
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY:-}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - ./tailscale-state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - net_raw
+    ports:
+      - "8080:80" # Allows accessing the service at http://localhost:8080/landing on the host machine
+    restart: unless-stopped
+
+  web-service:
+    build: .
+    container_name: web-service-poc
+    depends_on:
+      - tailscale
+    network_mode: service:tailscale
+    volumes:
+      - ./files:/app/files:ro
+      - ./static:/app/static:ro
+      - /Users/brandonhuang/Downloads/Kaohsiung Photos:/Users/brandonhuang/Downloads/Kaohsiung Photos:ro
+    restart: unless-stopped
