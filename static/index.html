@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=1.2">
 </head>
 <body class="dark-theme">
     <!-- Main App Container -->
@@ -97,7 +97,7 @@
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                    <button class="info-toggle-btn active" id="info-toggle" title="Toggle Detail Panel">
+                    <button class="info-toggle-btn" id="info-toggle" title="Toggle Detail Panel">
                         <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
                             <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
                             <line x1="12" y1="16" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -200,7 +200,7 @@
         </main>
 
         <!-- Right Side Panel (Details) -->
-        <aside class="detail-sidebar" id="detail-sidebar">
+        <aside class="detail-sidebar closed" id="detail-sidebar">
             <div class="detail-header">
                 <h3 class="detail-sidebar-title">Details</h3>
                 <button class="close-detail-btn" id="close-detail">
@@ -323,6 +323,6 @@
         </div>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=1.2"></script>
 </body>
 </html>
