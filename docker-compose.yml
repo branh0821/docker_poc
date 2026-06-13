@@ -9,13 +9,30 @@ services:
       - TS_USERSPACE=false
     volumes:
       - ./tailscale-state:/var/lib/tailscale
+      - ./certs:/certs
     devices:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - net_admin
       - net_raw
     ports:
-      - "8080:80" # Allows accessing the service at http://localhost:8080/landing on the host machine
+      - "8443:443"
+    command: >
+      sh -c '
+      /usr/local/bin/containerboot &
+      until tailscale status > /dev/null 2>&1; do
+        echo "Waiting for Tailscale...";
+        sleep 2;
+      done;
+      FQDN=$$(tailscale status --json | grep -o "\"DNSName\": \"[^\"]*\"" | head -n 1 | cut -d"\"" -f4 | sed "s/\.$$//");
+      echo "Tailscale is online. FQDN is $$FQDN";
+      if [ -n "$$FQDN" ]; then
+        mkdir -p /certs;
+        tailscale cert --cert-file ${SSL_CERT_PATH} --key-file ${SSL_KEY_PATH} $$FQDN;
+        echo "Certificates obtained.";
+      fi;
+      wait
+      '
     restart: unless-stopped
 
   web-service:
@@ -29,4 +46,14 @@ services:
       - ./static:/app/static:ro
       - ${KAOHSIUNG_PHOTOS_PATH}:${KAOHSIUNG_PHOTOS_PATH}:ro
       - ${TAINAN_PHOTOS_PATH}:${TAINAN_PHOTOS_PATH}:ro
+      - ./certs:/certs:ro
+    command: >
+      sh -c '
+      until [ -f ${SSL_CERT_PATH} ]; do
+        echo "Waiting for SSL certificates...";
+        sleep 2;
+      done;
+      echo "Certificates found, starting Uvicorn on HTTPS...";
+      uvicorn main:app --host 0.0.0.0 --port 443 --ssl-keyfile ${SSL_KEY_PATH} --ssl-certfile ${SSL_CERT_PATH}
+      '
     restart: unless-stopped
