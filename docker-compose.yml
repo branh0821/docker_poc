@@ -27,5 +27,6 @@ services:
     volumes:
       - ./files:/app/files:ro
       - ./static:/app/static:ro
-      - /Users/brandonhuang/Downloads/Kaohsiung Photos:/Users/brandonhuang/Downloads/Kaohsiung Photos:ro
+      - ${KAOHSIUNG_PHOTOS_PATH}:${KAOHSIUNG_PHOTOS_PATH}:ro
+      - ${TAINAN_PHOTOS_PATH}:${TAINAN_PHOTOS_PATH}:ro
     restart: unless-stopped
